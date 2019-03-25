@@ -1,0 +1,30 @@
+﻿<%@ Master Language="C#" Inherits="System.Web.Mvc.ViewMasterPage" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head runat="server">
+    <title><asp:ContentPlaceHolder ID="TitleContent" runat="server" /></title>
+    <link rel="shortcut icon" href="https://www.rmsebubble.com/favicon.ico">
+    <link rel="icon" type="image/gif" href="https://www.rmsebubble.com/animated_favicon1.gif">
+    <style type="text/css">
+    	body { margin: 0; padding: 0; }
+    	h1 { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #fff; background: #000; padding: 5px; margin: 0 0 5px 0; }
+    	h1 span { float: right; }
+    	th { vertical-align: top; padding: 5px; border-bottom: 2px solid #000; font-weight: bold; text-align: left; vertical-align: bottom; font-size: 12px; }
+    	td { vertical-align: top; padding: 5px 0; border-bottom: 1px solid #999; font-size: 11px; }
+    </style>
+
+</head>
+<body>
+    <div>
+        <h1>
+            <asp:ContentPlaceHolder ID="ReportTitleHolder" runat="server">
+            </asp:ContentPlaceHolder>
+        </h1>
+        <asp:ContentPlaceHolder ID="MainContent" runat="server">
+        
+        </asp:ContentPlaceHolder>
+    </div>
+</body>
+</html>

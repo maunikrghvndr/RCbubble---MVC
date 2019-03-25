@@ -1,0 +1,1 @@
+﻿RMSe-bubble Message: Your submitted release form(s) for a document type {%DocumentType%} has been approved.

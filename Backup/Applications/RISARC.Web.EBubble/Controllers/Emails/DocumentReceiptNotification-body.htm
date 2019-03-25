@@ -1,0 +1,49 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+    <h2>
+        RMSe-bubble Message: A document type {%DocumentType%} has been sent to you
+    </h2>
+    <p>
+        A document type <a href="{%BaseDirectory%}Document/?documentId={%DocumentId%}">{%DocumentType%}</a>
+        has been sent to you. This document was sent by:
+    </p>
+    <table>
+        <tr>
+            <td>
+                <strong>Name:</strong>
+            </td>
+            <td>
+                {%SenderContactName%}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Email:</strong>
+            </td>
+            <td>
+                <a href="mailto:{%SenderContactEmail%}">{%SenderContactEmail%}</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Phone:</strong>
+            </td>
+            <td>
+                {%SenderContactPhone%}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Provider/Facility:</strong>
+            </td>
+            <td>
+                {%SenderProviderName%}
+            </td>
+        </tr>
+    </table>
+    <p>
+        <a href="{%BaseDirectory%}Document/?documentId={%DocumentId%}">Go to the document</a>
+        to retrieve it.
+    </p>
+</body>
+</html>

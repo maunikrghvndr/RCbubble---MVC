@@ -1,0 +1,1 @@
+﻿RMSe-bubble Message: A document type {%DocumentType%} has been sent to your Organization

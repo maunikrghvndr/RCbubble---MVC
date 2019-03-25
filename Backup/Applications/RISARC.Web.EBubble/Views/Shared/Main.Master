@@ -1,0 +1,155 @@
+﻿<%@ Master Language="C#" Inherits="System.Web.Mvc.ViewMasterPage" %>
+<!DOCTYPE html>
+<html lang="en-US">
+<head id="Head1" runat="server">
+    <title>
+        <asp:ContentPlaceHolder ID="TitleContent" runat="server" />
+    </title>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+   <meta name="viewport" content="width=device-width; initial-scale=1.0"/>
+   <meta charset="UTF-8" />
+    <% var AssemblyVersion = ViewContext.Controller.GetType().Assembly.GetName().Version;  %>
+    <link rel="shortcut icon" href="https://www.rmsebubble.com/favicon.ico" />
+    <link rel="icon" type="image/gif" href="https://www.rmsebubble.com/animated_favicon1.gif" />
+    <link rel="apple-touch-icon-precomposed" href="https://www.rmsebubble.com/favicon.ico" />
+
+<%--  
+      <%= Html.Telerik().StyleSheetRegistrar()
+        .DefaultGroup(group => group
+        .Add("telerik.common.min.css")
+         .Add("telerik.sitefinity.css")
+     .Add("telerik." + Html.GetCurrentTheme() + ".css")
+     .Add("telerik.rtl.css")
+     //.Add("jquery-ui-1.7.2.custom.css")
+     )   %>--%>
+   
+    <% Html.DevExpress().RenderStyleSheets(Page,
+           new StyleSheet { ExtensionSuite = ExtensionSuite.GridView },
+           new StyleSheet { ExtensionSuite = ExtensionSuite.HtmlEditor },
+           new StyleSheet { ExtensionSuite = ExtensionSuite.Editors },
+           new StyleSheet { ExtensionSuite = ExtensionSuite.NavigationAndLayout }
+           // new StyleSheet { ExtensionSuite = ExtensionSuite.Chart },
+           //new StyleSheet { ExtensionSuite = ExtensionSuite.Report },
+           //    new StyleSheet { ExtensionSuite = ExtensionSuite.Scheduler },
+           //  new StyleSheet { ExtensionSuite = ExtensionSuite.PivotGrid },
+           //   new StyleSheet { ExtensionSuite = ExtensionSuite.TreeList }
+     ); %>
+   
+
+    <script type="text/javascript" src="<%: Url.Content("~/Scripts/jquery-1.11.1.min.js") %>?v=<%=AssemblyVersion %>"></script>
+    <script type="text/javascript" src="<%: Url.Content("~/Scripts/jquery-1.9.0.js") %>?v=<%=AssemblyVersion %>"></script>
+    <script type="text/javascript" src="<%: Url.Content("~/Scripts/jquery-ui.js")%>?v=<%= AssemblyVersion %>"></script>
+    <script type="text/javascript" src="<%: Url.Content("~/Scripts/jquery-migrate-1.1.0.min.js")%>?v=<%= AssemblyVersion %>"></script>
+    <script type="text/javascript" src="<%: Url.Content("~/Scripts/jstz-1.0.4.min.js")%>?v=<%= AssemblyVersion %>"></script>
+    <%--Required %--%>
+    <script src="<%: Url.Content("~/Scripts/MicrosoftAjax.js") %>?v=<%= AssemblyVersion %>" type="text/javascript"></script>
+    <script src="<%: Url.Content("~/Scripts/MicrosoftMvcValidation.js") %>?v=<%= AssemblyVersion %>" type="text/javascript"></script>
+    <script type="text/javascript" src="<%: Url.Content("~/Scripts/Common.js")%>?v=<%= AssemblyVersion %>"></script>
+
+
+
+        <%= System.Web.Optimization.Styles.Render("~/Content/css") %>
+      <%--  <%= System.Web.Optimization.Scripts.Render("~/bundles/jquery") %>--%>
+
+
+    <asp:ContentPlaceHolder ID="AdditionalHeadContent" runat="server" />
+
+    <script type="text/javascript">
+
+        //**** Added by Guru: Content urls for SessionChecker.js
+        var sessionActiveUrl = '<%: Url.Content("~/User/CheckSessionIsActive")%>?v=<%= AssemblyVersion %>';
+        var tokenExpirationUrl = '<%: Url.Content("~/User/GetTokenExpirationTime")%>?v=<%= AssemblyVersion %>';
+        var keepSessionAlive = '<%: Url.Content("~/User/KeepSessionAlive")%>?v=<%= AssemblyVersion %>';
+        var timeOutUrl = '<%: Url.Content("~/Account/TimedOut")%>';
+        //****
+        //function CheckForLoadEvent() {
+        //    console.log("out");
+        //    if (window.ExecuteOnLoad != null) {
+        //        window.ExecuteOnLoad();
+        //        console.log("in");
+        //    }
+        //}
+    </script>
+   
+
+
+</head>
+<%--<body onload="CheckForLoadEvent()">--%>
+    <body>
+    <% Html.DevExpress().RenderScripts(Page,
+           new Script { ExtensionSuite = ExtensionSuite.GridView },
+           new Script { ExtensionSuite = ExtensionSuite.HtmlEditor },
+           new Script { ExtensionSuite = ExtensionSuite.Editors },
+           new Script { ExtensionSuite = ExtensionSuite.NavigationAndLayout }
+          // new Script { ExtensionSuite = ExtensionSuite.Chart },
+           //new Script { ExtensionSuite = ExtensionSuite.Report },
+         //  new Script { ExtensionSuite = ExtensionSuite.Scheduler },
+         //   new Script { ExtensionSuite = ExtensionSuite.PivotGrid },
+         //  new Script { ExtensionSuite = ExtensionSuite.TreeList }
+     ); %>
+
+ 
+    <noscript>
+            <h3 style="text-align:center; color:red;">
+               Your browsing experience on this page will be better if you visit it with a JavaScript-enabled browser. Please enable JavaScript.
+            </h3>
+    </noscript>
+
+    <div id="site">
+        <div class="header">
+            <div class="inner">
+                <div class="logoholder">
+                    <div class="leftLogo">
+                        <div class="RisarcLogoImg">
+                            <a href="http://www.risarc.com" target="_blank">
+                                <img alt="RISARC LOGO" src="<%: Url.Content("~/Images/logo.png")%>" border="0" width="73" height="111"  />
+
+                            </a>
+                        </div>
+                    </div>
+                    <div class="rightLogo">
+                        <div class="headerRightCon">
+                            <div class="loginInfo">
+                                <asp:ContentPlaceHolder ID="LogOnContents" runat="server"></asp:ContentPlaceHolder>
+                            </div>
+                            <div class="eBubbleLogoImg">
+                                <a href="/">
+                                    <img alt="RISARC LOGO" src="<%: Url.Content("~/Images/rmse_logo.png")%>" border="0" width="177" height="74" ) /></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="clear secure">
+                    
+                    <div class="greenSeprator"></div>
+                    <%--<%  if ((Request.Url.AbsolutePath.Contains("AccountDetails"))){ %>--%>
+                    <%if (HttpContext.Current.Session["IsFieldOffierLogin"] != null && (bool)HttpContext.Current.Session["IsFieldOffierLogin"]
+                          && (Request.Url.AbsolutePath.Contains("AccountDetails") || Request.Url.AbsolutePath.Contains("WorkList")))
+                      {%>
+                   
+                             <%= Html.Action("EtarProductiveControl","AccountDetails") %>
+                     <% } %>
+                </div>
+               
+            </div>
+        </div>
+       <%-- <div class="wrapper">--%>
+            <div class="inner">
+                <asp:ContentPlaceHolder ID="InnerContents" runat="server">
+                </asp:ContentPlaceHolder>
+            </div>
+      <%--  </div>--%>
+        <div class="footer">
+         
+           
+           
+            <p>
+                <% Html.RenderPartial("FooterContents"); %>
+            </p>
+        </div>
+    </div>
+
+
+</body>
+</html>

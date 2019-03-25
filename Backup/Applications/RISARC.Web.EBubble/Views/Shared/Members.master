@@ -1,0 +1,270 @@
+﻿
+<%@ Master Language="C#" MasterPageFile="~/Views/Shared/Main.Master" AutoEventWireup="true"
+    Inherits="System.Web.Mvc.ViewMasterPage" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="TitleContent" runat="server">
+    <asp:ContentPlaceHolder ID="TitleContent" runat="server" />
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="AdditionalHeadContent" runat="server">
+<asp:ContentPlaceHolder ID="AdditionalHeadContent" runat="server" />
+ 
+  <%--  <script type="text/javascript" src="<%: Url.Content("~/Scripts/SessionChecker.js")%>"></script>--%>
+        <script type="text/javascript" src="<%: Url.Content("~/Scripts/SessionChecker.min.js")%>"></script>
+    <script type="text/javascript">
+
+        //================================= 18-Apr-2014=======================
+
+        //<![CDATA[
+
+        function removeFile(id) {
+            var totalFilesCount = $("#fileContainer div").length;
+            var currentFileCount;
+            //ajax request to RemoveFile action method and if the response is true then hide file from the screen.
+            $.ajax({
+                type: "GET",
+                url: "<%:(Url.Action("RemoveUploadedFile","File"))%>",
+                data: { documentFileId: id },
+                success: function (result) {
+                    $("#removeError").hide();
+                    if (result == "True") {
+                        $("a[encid='" + id + "']").parent().next("br").remove();
+                        $("a[encid='" + id + "']").parent().remove()
+                        currentFileCount = $("#fileContainer div").length;
+                        if (!(document.getElementById('fileUploadGrid') == null))
+                            currentFileCount = (fileUploadGrid.pageRowCount - 1);
+                        //hide file container if all files are removed.
+                        if (currentFileCount === 0) {
+                            $("#uploadedFiles").hide();
+                            $("#IsFileUploaded").val("false");
+                        }
+
+                    }
+                    else {
+                        $("#removeError").show();
+                    }
+                    if (!(document.getElementById('fileUploadGrid') == null))
+                        fileUploadGrid.PerformCallback();
+                },
+                error: function (request, status, error) {
+                    $("#removeError").show();
+                }
+            });
+        }
+
+
+
+        function previewComplianceFileLink() {
+            $.ajax({
+                url: "<%:(Url.Action("PreviewComplianceFileLink","ProviderAdmin"))%>",
+                type: 'GET',
+                cache: false,
+                success: function (result) {
+                    $('#divPreviewLink').html(result);
+                    if (!(document.getElementById('fileUploadGrid') == null)) {
+                        fileUploadGrid.PerformCallback();
+                    }
+                }
+            });
+        }
+
+        function ShowFileUploadControl() {
+            $("#fileUploader").show();
+        }
+
+        function HideFileUploadControl() {
+            $("#fileUploader").hide();
+        }
+
+        //Added by Guru
+        function submitAccount(acNoId, isSubmitted, sourceFlag, tcnNos) {
+            if (!window.confirm("Do you want to submit this document?"))
+                return false;
+
+            $.ajax({
+                type: "GET",
+                url: "<%:(Url.Action("SubmitDocument","AccountDetails"))%>",
+                  data: { accountNumberId: acNoId, tcnNumbers: tcnNos },
+                  cache: false,
+                  success: function (result) {
+                      if (result == "True") {
+                          gvDocPendingForTCN.PerformCallback();
+                      }
+                      else {
+                          alert('Can not submit this document as TCN number is not generated.');
+                      }
+
+                  },
+                  error: function (request, status, error) {
+                      console.error("Error occured while updating record.")
+                  }
+              });
+          }
+          //**** For review status from doc pending for TCN bucket. ****
+          function UpdateReviewStatus(accountNumberId, documentId, statusFlag, sourceFlag) {
+              var revStatus = (statusFlag == '1');
+              //if members is updating review status from Document pending for tcn bucket.
+              var confirmationMessage = (revStatus ? "Do you want to submit this document?" : "Do you want to reject this document?")
+
+              if (!window.confirm(confirmationMessage))
+                  return false;
+
+              $.ajax({
+                  type: "GET",
+                  url: "<%:(Url.Action("UpdateReviewStatus","ViewDocuments"))%>",
+                  data: { accountNumberId: accountNumberId, documentId: documentId, reviewStatus: revStatus },
+                  cache: false,
+                  success: function (result) {
+                      if (result == "True") {
+                          if (sourceFlag == 1) {
+                              gvDocPendingForTCN.PerformCallback();
+                          }
+                      }
+                  },
+                  error: function (request, status, error) {
+                      console.error("Error occured while updating review status.")
+                  },
+                  complete: function () {
+                      if (sourceFlag == '2') {
+                          alert("Review status updated successfully.");
+                          window.location = $("#documentPendingPath").val();
+                      }
+                  }
+              });
+
+          }
+          //********
+
+          //**** Check document access based on document type and format type ****
+        function CheckDocumentAccess(accountNumberId, documentFileId, documentid) {
+              generalizedShowLoader();
+              var isAccessAllowed = false;
+              $.ajax({
+                  type: "GET",
+                  url: "<%:(Url.Action("CheckDocumentAccessByDocumentType","ViewDocuments"))%>",
+                  data: { accountNumberId: accountNumberId, documentFileId: documentFileId, documentid: documentid },
+                  cache: false,
+                  async: false,
+                  success: function (result) {
+                      if (result == "False") {
+                          CustomLoadingPanelHide();
+                          alert("You do not have sufficient privileges to view the document. Please contact the administrator.");
+                      }
+                      isAccessAllowed = (result == "False" ? false : true);
+                  },
+                  error: function (request, status, error) {
+                      console.error("Error occured while accessing the document.")
+                      alert("Error occured while accessing the document.");
+                      CustomLoadingPanelHide();
+                  }
+
+              });
+              return isAccessAllowed;
+          }
+          //********
+          var timeTrackingIntervalUrl = '<%: Url.Content("~/TimeTracker/GetTimeTrackingInterval")%>';
+
+        function SetLocalDate(s, e, utcDate) {
+            var myDate = new Date();
+            var timezone = jstz.determine();
+            $.ajax({
+                url: "../TimeZoneCalculator.ashx?Date=" + utcDate + "&ClientTimeZone=" + (myDate.getTimezoneOffset() / 60),
+                cache: false
+            }).done(function (html) {
+                var clientTimeZoneString = '<div><b>Local Time Zone:</b> ' + html + '<br>(' + timezone.name() + ') </div>';
+                s.SetText(s.GetText() + "<br/>" + clientTimeZoneString);
+            });
+        }
+
+        // ]]> 
+
+
+        function CheckAcessAndSubmitDocumentId(s, e) {
+            if (DownloadDocumentId.GetValue() != null) {
+                if (CheckDocumentAccess(null, null, DownloadDocumentId.GetValue())) {
+                    CustomLoadingPanelHide();
+                    $("#docdownloadform").submit();
+
+                } else {
+                    alert("Please enter valid document id");
+                    return false;
+                }
+            } 
+        }
+
+
+    </script>
+
+    <%--Set local timezone in Session variable--%>
+    <%if (Session["LocalTimeZoneOffset"] == null)
+      { %>
+    <script type="text/javascript">
+        $.post('<%: Url.Content("~/Home/SetTimeZone")%>', { offSet: new Date().getTimezoneOffset() });
+    </script>
+    <%}%>
+
+</asp:Content>
+<asp:Content ID="Content4" ContentPlaceHolderID="LogOnContents" runat="server">
+    <% Html.RenderPartial("LogOnUserControlMember"); %>
+    <!-- //Html.RenderPartial("SessionTimeOutWindow"); -->
+</asp:Content>
+<asp:Content ID="Content3" ContentPlaceHolderID="InnerContents" runat="server">
+    <!-- IE browser specific code -->
+<div id="loadingPanelCustom" align="center" style="position: absolute; z-index: 30000;"> </div>
+<div id="loadingPanelCovered" class="dxlpLoadingDiv" style="display:block; top: 0px; left: 0px; z-index: 29999; position: absolute; "></div>
+ <% Html.DevExpress().LoadingPanel(settings =>
+        {
+            settings.Name = "loadingPanel";  
+            settings.Modal = true;
+            settings.ShowImage = true;
+            settings.Images.LoadingPanel.Url = Url.Content("~/Images/icons/LoadingLogo.gif"); // Change Loading Image icons
+            settings.Text = "   ";
+            settings.Images.LoadingPanel.Width = 76;
+            settings.Images.LoadingPanel.Height = 100; 
+            
+            settings.ControlStyle.Border.BorderColor = System.Drawing.ColorTranslator.FromHtml("#ACACAC");
+        
+ }).GetHtml(); %>
+
+    <!--div to show remaining time for session timeout-->
+    <div class='overlay'>
+        <div class="spTimeLeft">
+            <span>Time Remaining: </span>
+            <span id="spTimer"></span>
+        </div>
+    </div>
+    <%--/IF This request dont show left pannel/--%>
+      <% if((Request.Url.AbsolutePath.Contains("AccountDetailsMaster"))) { %>
+
+   
+        <!-- validation messages should not be shown. -->
+        <%-- <%= Html.StatusMessage() %>
+            <%= Html.ValidationSummary("Please enter missing or incorrect information (see below)") %>--%>
+        <asp:ContentPlaceHolder ID="AccountDetailsMaster" runat="server">
+        </asp:ContentPlaceHolder>
+      
+   
+     <% }else { %>
+
+    <div class="left">
+        <div class="nav">
+            <% Html.RenderAction<RISARC.Web.EBubble.Controllers.NavigationController>(
+                           x => x.NavigationMenu((RISARC.Web.EBubble.Controllers.SelectedLink?)ViewData.GetValue(GlobalViewDataKey.SelectedLink))); %>
+        </div>
+    </div>
+
+    <div class="right">
+        <div class="content">
+           
+            <%= Html.StatusMessage() %>
+            <%   if (!Request.Url.AbsolutePath.Contains("/AccountAdministration/ManageRoles")) { %>
+            <%=  Html.ValidationSummary("Please enter missing or incorrect information (see below)") %>
+            <% }  %>
+
+            <asp:ContentPlaceHolder ID="MainContent" runat="server">
+            </asp:ContentPlaceHolder>
+            <div class="space"></div>
+        </div>
+    </div>
+
+    <% } %>
+</asp:Content>

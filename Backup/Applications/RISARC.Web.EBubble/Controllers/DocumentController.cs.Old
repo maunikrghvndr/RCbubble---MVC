@@ -1,0 +1,514 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Mvc.Ajax;
+using RISARC.Web.EBubble.Models.Binders;
+using RISARC.Encryption.Service;
+using RISARC.Documents.Service;
+using RISARC.Emr.Web.DataTypes;
+using RISARC.Documents.Model;
+using RISARC.Documents.Model.PatientIdentification;
+using SpiegelDg.Common.Web.Extensions;
+using SpiegelDg.Common.Validation;
+using Microsoft.Practices.EnterpriseLibrary.ExceptionHandling;
+using SpiegelDg.Security.Model;
+using System.Collections.ObjectModel;
+using RISARC.Common.Model;
+using RISARC.Documents.Model.Payment;
+using RISARC.Payment.Model;
+namespace RISARC.Web.EBubble.Controllers
+{
+    public class DocumentController : Controller
+    {
+        private IUserDocumentsService _UserDocumentsService;
+        private IDocumentsRetrievalService _RetrievalService;
+
+        // used for changing header when downloading a file
+        private const string _FileHeaderKey = "content-disposition";
+        private const string _FileHeaderFormat = "attachment; filename={0}";
+
+        public DocumentController(IUserDocumentsService userDocumentsService,
+            IDocumentsRetrievalService retrievalService)
+        {
+            this._UserDocumentsService = userDocumentsService;
+            this._RetrievalService = retrievalService;
+        }
+
+
+        /// <summary>
+        /// Directs user to proper view for state of document
+        /// </summary>
+        /// <returns></returns>
+        [AuditingAuthorizeAttribute("AccessDocument", Roles = "User")]
+        public ActionResult Index([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId)
+        {
+            DocumentStatus status;
+
+            status = _RetrievalService.GetDocumentStatus(documentId);
+            //if (document == null)
+            //    throw new ArgumentException("No document exists with id " + documentId);
+
+            switch (status)
+            {
+                case DocumentStatus.AwaitingComplianceApproval:
+                    return AlreadyVerified();
+                    break;
+                case DocumentStatus.AwaitingVerification:
+                    return VerifyIdentification(documentId);
+                    break;
+                case DocumentStatus.Expired:
+                    return Expired();
+                    break;
+                case DocumentStatus.LockedOutFromAttemptedVerifications:
+                    return VerificationLockedOut();
+                    break;
+                case DocumentStatus.ReadyForCompliance:
+                    return SubmitCompletedComplianceDoc(documentId);
+                    break;
+                case DocumentStatus.ReadyForDownload:
+                    return Download(documentId);
+                    break;
+                case DocumentStatus.ReadyForPurchase:
+                    return RedirectToAction("
+                    
+                    
+            }
+
+        }
+
+        private ActionResult Expired()
+        {
+            throw new NotImplementedException();
+        }
+
+        
+        
+
+        
+
+        //[AuditingAuthorizeAttribute("ProvidersRequests", Roles = "DocumentAdmin")]
+        //public ActionResult ProvidersInboundRequests(DocumentStatus? status, int pageNumber)
+        //{
+        //    ViewData.SetValue(GlobalViewDataKey.SelectedLink, SelectedLink.ProvidersRequests);
+
+        //    IList<DocumentRequest> documentRequests;
+        //    int numberOfPages;
+
+        //    documentRequests = this._RetrievalService.GetProvidersDocumentRequests(status, pageNumber, out numberOfPages);
+
+        //    ViewData.SetValue(GlobalViewDataKey.NumberOfPages, numberOfPages);
+        //    ViewData.SetValue(GlobalViewDataKey.PageNumber, pageNumber);
+
+        //    ViewData["RequestStatus"] = status;
+
+        //    return View("ProvidersRequests", documentRequests);
+        //}
+
+        private ViewResult ViewForRequests(IEnumerable<DocumentStatus> statuses,
+             DateTime? startDate,
+           DateTime? endDate,
+           int pageNumber)
+        {
+            int numberOfPages;
+            IEnumerable<DocumentRequest> requests;
+
+            if (pageNumber == 0)
+                pageNumber = 1; // hack - set to 1 by default
+
+            requests = _RetrievalService.GetUsersInboundRequests(
+                statuses,
+                startDate,
+                endDate,
+                pageNumber,
+                out numberOfPages);
+
+            ViewData["StartDate"] = startDate;
+            ViewData["EndDate"] = endDate;
+
+            ViewData.SetValue(GlobalViewDataKey.NumberOfPages, numberOfPages);
+            ViewData.SetValue(GlobalViewDataKey.PageNumber, pageNumber);
+
+            return View("ViewRequests", requests);
+        }
+
+
+
+
+        /// <summary>
+        /// Renders link to get the compliance doc.  Just shows the link and the href property will
+        /// have the download link
+        /// </summary>
+        /// <param name="documentId"></param>
+        /// <returns></returns>
+        [AuditingAuthorizeAttribute("ComplianceDocLink", Roles = "User")]
+        public ViewResult ComplianceDocLink(int documentId)
+        {
+            DocumentFile documentFile;
+
+            documentFile = _UserDocumentsService.GetComlianceDoc(documentId, false);
+
+            ViewData["FileName"] = documentFile.FileName;
+            ViewData["DocumentId"] = documentId;
+
+            return View();
+        }
+
+        /// <summary>
+        /// Gets the compliance document needed to be filled out by the user in order to purchase and download the document
+        /// </summary>
+        /// <param name="documentId"></param>
+        /// <returns></returns>
+        [AuditingAuthorizeAttribute("GetComplianceDoc", Roles = "User")]
+        public FileStreamResult GetComplianceDoc([ModelBinder(typeof(EncryptedIntegerBinder))]int documentId)
+        {
+            FileStreamResult result;
+            DocumentFile documentFile;
+
+            documentFile = _UserDocumentsService.GetComlianceDoc(documentId, true);
+            
+            // make sure so that they download it rather then it takes them to new url
+            HttpContext.Response.AddHeader(_FileHeaderKey,
+                String.Format(_FileHeaderFormat, documentFile.FileName));
+
+            //HttpContext.Response.AddHeader("content-disposition",
+            //    "attachment; filename=form.pdf");
+
+            result = new FileStreamResult(documentFile.FileStream, documentFile.ContentType);
+
+            return result;
+        }
+
+        [AcceptVerbs(HttpVerbs.Get)]
+        [AuditingAuthorizeAttribute("SubmitCompletedComplianceDocGet", Roles = "User")]
+        private ViewResult SubmitCompletedComplianceDoc([ModelBinder(typeof(EncryptedIntegerBinder))]int documentId)
+        {
+            ViewData["DocumentId"] = documentId;
+
+            return View();
+        }
+
+        private ActionResult PurchaseDocument([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId)
+        {
+            BillingMethod paymentMethod;
+            PaymentInstructions instructions;
+
+            instructions = _UserDocumentsService.GetPaymentInstructionsForDocument(documentId);
+            
+            ViewData["DocumentId"] = documentId;
+            ViewData["RequiredPaymentAmount"] = instructions.RequiredPaymentAmount;
+
+            switch (instructions.PaymentMethod)
+            {
+                case BillingMethod.CreditCard:
+                    return View("PayByCreditCard", new CreditCardPaymentInfo());
+                case BillingMethod.Invoice:
+                    return View("PayByInvoice", new InvoiceInfo());
+                default:
+                    throw new InvalidOperationException("Unknown payment method of " + instructions.PaymentMethod.ToString() + ".");
+            }
+        }
+
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        [ValidateAntiForgeryToken]
+        [AuditingAuthorizeAttribute("SubmitCompletedComplianceDoc", Roles = "User")]
+        public ViewResult SubmitCompletedComplianceDoc([ModelBinder(typeof(EncryptedIntegerBinder))]int documentId, HttpPostedFileBase FileUpload)
+        {
+            DocumentFile documentFile;
+            int? insertedFileId;
+
+            if (FileUpload == null)
+                ModelState.AddModelError("FileToUpload", "You must choose a file to send");
+            else
+            {
+                documentFile = new DocumentFile(FileUpload.ContentType,
+                    FileUpload.FileName,
+                    FileUpload.InputStream);
+
+                try
+                {
+
+                    insertedFileId = _UserDocumentsService.SubmitCompletedComplianceDoc(documentId, documentFile);
+                    if (!insertedFileId.HasValue)
+                        throw new InvalidOperationException("No file id generated");
+
+                    //encrypter = new FrontEndEnrypter();
+                    //encryptedInsertedFileId = encrypter.Encrypt(insertedFileId.Value.ToString());
+
+                    //ViewData["ExtraInfo"] = "You have successfully uploaded the release form.  Our staff our reviewing it, and if it is approved
+                    ViewData["DocumentFileId"] = insertedFileId;
+                    ViewData["DocumentFileName"] = documentFile.FileName;
+                }
+                catch (Exception ex)
+                {
+                    // hack - since called in iframe, just set uploaded file id to null, which
+                    // will cause an error message to occur
+                    ExceptionPolicy.HandleException(ex, "Global Policy");
+                    ViewData["DocumentFileId"] = (int?)null;
+                    ViewData["ErrorMessage"] = "An unexpected error occured when file was uploaded.";
+                }
+            }
+
+            return View("~/Views/File/UploadFileFormIFrame.aspx");
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        [ValidateAntiForgeryToken]
+        [AuditingAuthorizeAttribute("PayByCreditCard", Roles = "User")]
+        public ActionResult PayByCreditCard([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId, CreditCardPaymentInfo payment)
+        {
+            PaymentResult paymentResult;
+
+            PaymentInstructions paymentInstructions;
+            IEncryptionService encryptionService;
+            string encryptedDocumentId;
+
+            paymentResult = null;
+            try
+            {
+                paymentResult = _UserDocumentsService.PayByCreditCard(documentId, payment);
+            }
+            catch (RuleException ex)
+            {
+                ex.CopyToModelState(ModelState);
+            }
+
+            if (paymentResult != null)
+            {
+                if (paymentResult.PaymentStatus != PaymentStatus.Accepted)
+                    CopyPaymentErrorToModelState(paymentResult);
+            }
+
+            if (ModelState.IsValid)
+            {
+                encryptionService = new FrontEndEnrypter();
+                encryptedDocumentId = encryptionService.Encrypt(documentId.ToString());
+                return RedirectToAction("DocumentPaymentSuccess", new { documentId = encryptedDocumentId });
+            }
+            else
+            {
+                ViewData["DocumentId"] = documentId;
+                paymentInstructions = _UserDocumentsService.GetPaymentInstructionsForDocument(documentId);
+                ViewData["RequiredPaymentAmount"] = paymentInstructions.RequiredPaymentAmount;
+
+                return View(payment);
+            } 
+            //}
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        [ValidateAntiForgeryToken]
+        [AuditingAuthorizeAttribute("PayByInvoice", Roles = "User")]
+        public ActionResult PayByInvoice([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId, InvoiceInfo payment)
+        {
+            PaymentResult paymentResult;
+
+            PaymentInstructions paymentInstructions;
+            IEncryptionService encryptionService;
+            string encryptedDocumentId;
+
+            paymentResult = null;
+            try
+            {
+                paymentResult = _UserDocumentsService.PayByInvoice(documentId, payment);
+            }
+            catch (RuleException ex)
+            {
+                ex.CopyToModelState(ModelState);
+            }
+
+            if (paymentResult != null)
+            {
+                if (paymentResult.PaymentStatus != PaymentStatus.Accepted)
+                    CopyPaymentErrorToModelState(paymentResult);
+            }
+
+            if (ModelState.IsValid)
+            {
+                encryptionService = new FrontEndEnrypter();
+                encryptedDocumentId = encryptionService.Encrypt(documentId.ToString());
+                return RedirectToAction("DocumentPaymentSuccess", new { documentId = encryptedDocumentId });
+            }
+            else
+            {
+                ViewData["DocumentId"] = documentId;
+                paymentInstructions = _UserDocumentsService.GetPaymentInstructionsForDocument(documentId);
+                ViewData["RequiredPaymentAmount"] = paymentInstructions.RequiredPaymentAmount;
+
+                return View(payment);
+            } 
+        }
+
+
+
+
+        /// <summary>
+        /// For a user to confirm they are the valid recipient of the document
+        /// </summary>
+        /// <param name="documentId"></param>
+        /// <returns></returns>
+        [AcceptVerbs(HttpVerbs.Get)]
+        private ViewResult VerifyIdentification([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId)
+        {
+            IEnumerable<Type> availableIdentificationOptions;
+
+            // these were determined based on what was checked when the document was sent.
+            availableIdentificationOptions = _UserDocumentsService.GetPossibleIdentificationMethods(documentId);
+            ViewData["AvailableIdentificationOptions"] = availableIdentificationOptions;
+
+            //ViewData["DocumentId"] = documentId;
+
+            return View();
+        }
+        
+        /// <summary>
+        /// For a user to confirm they are the valid recipient of the document
+        /// </summary>
+        /// <param name="documentId"></param>
+        /// <returns></returns>
+        [AcceptVerbs(HttpVerbs.Post)]
+        [ValidateAntiForgeryToken]
+        [AuditingAuthorizeAttribute("VerifyIdentificationPost", Roles = "User")]
+        public ActionResult VerifyIdentification([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId,
+            [ModelBinder(typeof(PatientIdentificationBinder))] APatientIdentification patientIdentification)
+        {
+            IEnumerable<Type> availableIdentificationOptions;
+            IdentificationVerificationStatus verificationStatus;
+            IEncryptionService encryptionService;
+            string encryptedDocumentId;
+
+            try
+            {
+                verificationStatus = _UserDocumentsService.VerifyIdentificationForDocument(documentId, patientIdentification);
+
+                if (verificationStatus == IdentificationVerificationStatus.Failed)
+                    ModelState.AddModelError("Verification", "The information  you entered was invalid.");
+                else if (verificationStatus == IdentificationVerificationStatus.LockedOut)
+                    ModelState.AddModelError("Verification", "Verification locked out.");
+
+            }
+            catch (RuleException ex)
+            {
+                ex.CopyToModelState(ModelState);
+                verificationStatus = IdentificationVerificationStatus.InputError;
+            }
+
+            if (ModelState.IsValid || verificationStatus == IdentificationVerificationStatus.Succeeded)
+            {
+                encryptionService = new FrontEndEnrypter();
+                encryptedDocumentId = encryptionService.Encrypt(documentId.ToString());
+                return RedirectToAction("SuccessfullyVerified", new { documentId = encryptedDocumentId });
+            }
+            else if (verificationStatus == IdentificationVerificationStatus.LockedOut)
+                return RedirectToAction("VerificationLockedOut");
+            else
+            {
+                availableIdentificationOptions = _UserDocumentsService.GetPossibleIdentificationMethods(documentId);
+                ViewData["AvailableIdentificationOptions"] = availableIdentificationOptions;
+                //ViewData["DocumentId"] = documentId;
+
+                return View(patientIdentification);
+            }
+             
+
+        }
+
+        [AuditingAuthorizeAttribute("SuccessfullyVerified", Roles = "User")]
+        public ViewResult SuccessfullyVerified([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId)
+        {
+            ViewData["DocumentId"] = documentId;
+
+            return View();
+        }
+
+        [AuditingAuthorizeAttribute("VerificationLockedOut", Roles = "User")]
+        public ViewResult VerificationLockedOut()
+        {
+            return View();
+        }
+
+        public ViewResult AlreadyVerified()
+        {
+            return View();
+        }
+
+        [AcceptVerbs(HttpVerbs.Get)]
+        [AuditingAuthorizeAttribute("Download", Roles = "User")]
+        public ViewResult Download([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId)
+        {
+            //DocumentFile documentFile;
+
+            // get file info without loading the stream, so can render information
+           // documentFile = _UserDocumentsService.GetDocumentFile(documentId, false);
+            ViewData["DocumentId"] = documentId;
+            //ViewData["DocumentName"] = documentFile.FileName;
+
+            return View();
+        }
+
+
+
+        [AcceptVerbs(HttpVerbs.Get)]
+        [AuditingAuthorizeAttribute("GetDocumentFile", Roles = "User")]
+        public FileStreamResult GetDocumentFile([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId)
+        {
+            FileStreamResult fileStreamResult;
+            DocumentFile documentFile;
+
+            // get file with stream.  this will also set the document as downloaded
+            documentFile = _UserDocumentsService.GetDocumentFile(documentId, true);
+
+            // make sure so that they download it rather then it takes them to new url
+            HttpContext.Response.AddHeader(_FileHeaderKey,
+                String.Format(_FileHeaderFormat, documentFile.FileName));
+
+            fileStreamResult = new FileStreamResult(documentFile.FileStream, documentFile.ContentType);
+
+            return fileStreamResult;
+        }
+
+        #region Partial Views
+
+
+        [AuditingAuthorizeAttribute("DocumentTypesDropDown", Roles = "User")]
+        public ActionResult DocumentTypesDropDown(string fieldName, string emptyOptionText, int? selectedValue)
+        {
+            IEnumerable<SelectListItem> selectListItems;
+            IEnumerable<KeyValuePair<int, string>> documentTypes;
+
+            ViewData.SetValue(GlobalViewDataKey.FieldName, fieldName);
+            ViewData.SetValue(GlobalViewDataKey.OptionText, emptyOptionText);
+
+            documentTypes = _UserDocumentsService.GetAllDocumentTypes();
+
+            selectListItems = from docType in documentTypes
+                              select new SelectListItem
+                              {
+                                  Text = docType.Value,
+                                  Value = docType.Key.ToString(),
+                                  Selected = docType.Key == selectedValue
+                              };
+
+            return View("DropDown", selectListItems);
+        }
+
+        [AcceptVerbs(HttpVerbs.Get)]
+        [AuditingAuthorizeAttribute("Download", Roles = "User")]
+        public ViewResult DownloadDocumentLink([ModelBinder(typeof(EncryptedIntegerBinder))] int documentId)
+        {
+            DocumentFile documentFile;
+
+            // get file info without loading the stream, so can render information
+            documentFile = _UserDocumentsService.GetDocumentFile(documentId, false);
+            ViewData["DocumentId"] = documentId;
+            ViewData["DocumentName"] = documentFile.FileName;
+
+            return View();
+        }
+
+        #endregion
+        
+    }
+}

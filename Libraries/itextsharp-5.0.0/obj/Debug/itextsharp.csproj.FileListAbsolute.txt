@@ -1,0 +1,1 @@
+C:\Users\Raghavendra\Desktop\MNK utilities\RISARC.RMSEbubble-Release\Libraries\itextsharp-5.0.0\obj\Debug\itextsharp.csprojResolveAssemblyReference.cache

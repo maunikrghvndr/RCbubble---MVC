@@ -1,0 +1,36 @@
+﻿<%@ Master Language="C#" MasterPageFile="~/Views/Shared/Main.Master" AutoEventWireup="true"
+    Inherits="System.Web.Mvc.ViewMasterPage" %>
+<asp:Content ID="Content1" ContentPlaceHolderID="TitleContent" runat="server">
+    <asp:ContentPlaceHolder ID="TitleContent" runat="server" />
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="AdditionalHeadContent" runat="server">
+    <asp:ContentPlaceHolder ID="AdditionalHeadContent" runat="server" />
+</asp:Content>
+
+<asp:Content ID="Content4" ContentPlaceHolderID="LogOnContents" runat="server">
+    <% Html.RenderPartial("LogOnUserControlGuest"); %>
+</asp:Content>
+<asp:Content ID="Content3" ContentPlaceHolderID="InnerContents" runat="server">
+    <div class="left">
+        <div class="nav">
+            <%--<% Html.RenderAction<RISARC.Web.EBubble.Controllers.NavigationController>(
+                           x => x.NavigationMenu((RISARC.Web.EBubble.Controllers.SelectedLink?)ViewData.GetValue(GlobalViewDataKey.SelectedLink))); %>--%>
+        </div>
+    </div>
+    <div class="right">
+        <div class="content">
+            <%= Html.StatusMessage() %>
+            <%= Html.ValidationSummary("Please enter missing or incorrect information (see below)") %>
+            <asp:ContentPlaceHolder ID="MainContent" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
+    </div>
+<%--        <center>
+<!--
+SiteSeal Html Builder Code:
+Shows the logo at URL https://seal.networksolutions.com/images/basicsqgreen.gif
+Logo type is  ("NETSB")
+//-->
+<script language="JavaScript" type="text/javascript">    SiteSeal("https://seal.networksolutions.com/images/basicsqgreen.gif", "NETSB", "none");</script>
+    </center>--%>
+</asp:Content>

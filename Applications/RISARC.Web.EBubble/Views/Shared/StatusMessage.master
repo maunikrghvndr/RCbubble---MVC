@@ -1,0 +1,10 @@
+﻿<%@ Master Language="C#" MasterPageFile="~/Views/Shared/Members.Master" AutoEventWireup="true" CodeBehind="StatusMessage.master.cs" Inherits="RISARC.Web.EBubble.Views.Shared.StatusMessage" %>
+<asp:Content ID="Content1" ContentPlaceHolderID="TitleContent" runat="server">
+    <asp:ContentPlaceHolder ID="TitleContent" runat="server"></asp:ContentPlaceHolder>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="MainContent" runat="server">
+<h2>
+    <asp:ContentPlaceHolder ID="StatusHeader" runat="server"></asp:ContentPlaceHolder>
+</h2>
+<asp:ContentPlaceHolder ID="StatusContents" runat="server"></asp:ContentPlaceHolder>
+</asp:Content>

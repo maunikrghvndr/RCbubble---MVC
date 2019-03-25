@@ -1,0 +1,77 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+    <h2>
+        RMSe-bubble Message: A request has been sent 
+    </h2>
+    <p>
+        A request for a document type {%DocumentType%} has been sent. <a href="{%BaseDirectory%}RequestAdmin/?requestId={%RequestId%}">Click Here</a> to respond to this request.
+    </p>
+    <h3>
+        Request Details
+    </h3>
+    <table>
+        <tr>
+            <td>
+                <strong>
+                    Requested Document Type:    
+                </strong>
+            </td>
+            <td>
+                {%DocumentType%}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong> 
+                    Requested Document Description:
+                </strong>
+            </td>
+            <td>
+                {%DocumentDescription%}
+            </td>
+        </tr>
+    </table>
+    <h3>
+        Information about 
+        the member who sent request
+    </h3>
+     <table>
+        <tr>
+            <td>
+                <strong>Name:</strong>
+            </td>
+            <td>
+                {%SenderContactName%}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Email:</strong>
+            </td>
+            <td>
+                <a href="mailto:{%SenderContactEmail%}">{%SenderContactEmail%}</a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Phone:</strong>
+            </td>
+            <td>
+                {%SenderContactPhone%}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Provider/Facility:</strong>
+            </td>
+            <td>
+                {%SenderProviderName%}
+            </td>
+        </tr>
+    </table>
+    <p>
+        <a href="{%BaseDirectory%}RequestAdmin/?requestId={%RequestId%}">Click Here</a> to respond to this request.
+    </p>
+    
+</body>
+</html>

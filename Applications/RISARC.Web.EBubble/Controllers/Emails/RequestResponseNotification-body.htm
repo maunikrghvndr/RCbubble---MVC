@@ -1,0 +1,36 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+    <h2>
+        RMSe-bubble Message: You have received a document in response to your request
+    </h2>
+    <p>
+        A document has been sent to you in response to your request for:         
+    </p>
+    <table>
+        <tr>
+            <td>
+                <strong>
+                    Requested Document Type:    
+                </strong>
+            </td>
+            <td>
+                {%DocumentType%}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong> 
+                    Requested Document Description:
+                </strong>
+            </td>
+            <td>
+                {%DocumentDescription%}
+            </td>
+        </tr>
+    </table>
+    <p>
+        <a href="{%BaseDirectory%}Document/?documentId={%DocumentId%}">Click Here</a> to retrieve the document.
+    </p>
+    
+</body>
+</html>

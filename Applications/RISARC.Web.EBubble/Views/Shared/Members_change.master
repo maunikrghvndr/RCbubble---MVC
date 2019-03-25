@@ -1,0 +1,51 @@
+﻿<%@ Master Language="C#" MasterPageFile="~/Views/Shared/Members_change.master" AutoEventWireup="true"
+    Inherits="System.Web.Mvc.ViewMasterPage" %>
+<asp:Content ContentPlaceHolderID="TitleContent" runat="server">
+    <asp:ContentPlaceHolder ID="TitleContent" runat="server" />
+</asp:Content>
+<asp:Content ContentPlaceHolderID="AdditionalHeadContent" runat="server">
+    <asp:ContentPlaceHolder ID="AdditionalHeadContent" runat="server" />
+    <!--<script type="text/javascript" src="<%: Url.Content("~/Scripts/jquery.timers-1.2.js")%>"></script>
+    <script type="text/javascript" src="<%: Url.Content("~/Scripts/SessionChecker.js")%>"></script> -->
+ 
+<%--  <% Html.Telerik().ScriptRegistrar()
+                          .DefaultGroup(group => group
+                              .Add("telerik.examples.js")
+
+
+                              .Compress(true));
+        %>--%>
+</asp:Content>
+<asp:Content ID="Content4" ContentPlaceHolderID="LogOnContents" runat="server">
+    <% Html.RenderPartial("LogOnUserControlMember"); %>
+</asp:Content>
+<asp:Content ID="Content3" ContentPlaceHolderID="InnerContents" runat="server">
+    <div class="left">
+        <div class="nav">
+            <% Html.RenderAction<RISARC.Web.EBubble.Controllers.NavigationController>(
+                           x => x.NavigationMenu((RISARC.Web.EBubble.Controllers.SelectedLink?)ViewData.GetValue(GlobalViewDataKey.SelectedLink))); %>
+        </div>
+    </div>
+    <div class="right">
+        <div class="content">
+            <%= Html.StatusMessage() %>
+            <%= Html.ValidationSummary("Please enter missing or incorrect information (see below)") %>
+            <asp:ContentPlaceHolder ID="MainContent" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
+    </div>
+<%--        <center>
+<!--
+SiteSeal Html Builder Code:
+Shows the logo at URL https://seal.networksolutions.com/images/basicsqgreen.gif
+Logo type is  ("NETSB")
+//-->
+<script language="JavaScript" type="text/javascript">    SiteSeal("https://seal.networksolutions.com/images/basicsqgreen.gif", "NETSB", "none");</script>
+    </center>--%>
+  <%--    <%
+          Html.Telerik().ScriptRegistrar()
+            .DefaultGroup(group => group
+                  .Add("~/Scripts/2012.1.214/jquery.validate.min.js"));
+  
+    %> --%>
+</asp:Content>

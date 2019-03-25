@@ -1,0 +1,81 @@
+﻿/*Overriding Styles in IE versions */
+.daysposition
+{
+    margin-left: -10px !important;
+    margin-top: 22px;
+    position: absolute;
+}
+
+.dxeMemoEditArea
+{
+    height: 25px !important;
+}
+
+
+
+.goButton
+{
+    padding: 5px !important;
+    margin: 0;
+}
+
+.clsWidth100px
+{
+    height: 25px;
+}
+#txtGoToPage
+{
+	border: 1px solid #808080;
+}
+.goButton
+{
+	height:32px;
+}
+
+.AccessOption1
+{
+    /*-webkit-border-radius: 5px !important;
+    -moz-border-radius: 5px !important;
+     border-radius: 5px !important;
+     behavior: url(../Scripts/pie/PIE.htc);*/
+     /*position:absolute !important;
+     border: 1px solid grey !important;
+}
+
+.orangeBtn
+{
+     -webkit-border-radius: 4px !important;
+    -moz-border-radius: 4px !important;
+    border-radius: 4px !important;
+
+     behavior: url(../Scripts/pie/PIE.htc);
+     /*position:relative !important;*/
+}
+.greyBtn
+{
+    
+    border-radius: 4px !important;
+     behavior: url(../Scripts/pie/PIE.htc);
+     /*position:relative !important;*/
+}
+
+ .dxtlLoadingPanel, .dxlpLoadingPanel, .dxgvLoadingPane{
+    background-color: white !important;
+    border: none !important;
+    }
+
+    .dxlpLoadingPanel td:first-child, .dxtlLoadingPanel td:first-child, .dxgvLoadingPanel td:first-child
+    {
+        padding: 5px !important;
+    }
+
+    .dxlpLoadingPanel td:first-child + td, .dxtlLoadingPanel td:first-child + td, .dxgvLoadingPanel td:first-child + td
+    {
+        display: none !important;
+    }
+    
+     ul.docSendingMethod li
+{
+    line-height:18px !important;
+}
+

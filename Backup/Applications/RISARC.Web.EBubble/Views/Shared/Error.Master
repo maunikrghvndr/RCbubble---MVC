@@ -1,0 +1,20 @@
+﻿<%@ Master Language="C#" MasterPageFile="~/Views/Shared/Main.Master" AutoEventWireup="true"
+    Inherits="System.Web.Mvc.ViewMasterPage" %>
+<asp:Content ID="Content1" ContentPlaceHolderID="TitleContent" runat="server">
+    <asp:ContentPlaceHolder ID="TitleContent" runat="server" />
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="AdditionalHeadContent" runat="server">
+</asp:Content>
+<asp:Content ID="Content3" ContentPlaceHolderID="InnerContents" runat="server">
+    <div class="right">
+        <div class="content">
+            <h2>
+            <asp:ContentPlaceHolder ID="ErrorHeader" runat="server">
+            </asp:ContentPlaceHolder>
+            </h2>
+            
+            <asp:ContentPlaceHolder ID="ErrorMessage" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
+    </div>
+</asp:Content>
